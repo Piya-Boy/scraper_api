@@ -1,0 +1,31 @@
+name: Run Flask App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # สำหรับเรียกใช้งาน workflow เองแบบ manual
+
+jobs:
+  run-flask:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flask
+
+      - name: Run Flask App
+        env:
+          FLASK_APP: app.py  # เปลี่ยนชื่อไฟล์ให้ตรงกับชื่อไฟล์ของคุณ
+        run: |
+          python -m flask run --host=0.0.0.0 --port=5000
