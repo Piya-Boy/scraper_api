@@ -1,10 +1,10 @@
-name: Run Flask App
+name: Run Flask App with ngrok
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # สำหรับเรียกใช้งาน workflow เองแบบ manual
+  workflow_dispatch:
 
 jobs:
   run-flask:
@@ -24,8 +24,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install flask
 
-      - name: Run Flask App
+      - name: Start Flask App
         env:
-          FLASK_APP: app.py  # เปลี่ยนชื่อไฟล์ให้ตรงกับชื่อไฟล์ของคุณ
+          FLASK_APP: app.py  # เปลี่ยนชื่อไฟล์ให้ตรงกับชื่อ Flask app ของคุณ
         run: |
-          python -m flask run --host=0.0.0.0 --port=5000
+          nohup python -m flask run --host=0.0.0.0 --port=5000 &
+
+      - name: Install ngrok
+        run: |
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | tee /etc/apt/trusted.gpg.d/ngrok.asc | apt-key add -
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | tee /etc/apt/sources.list.d/ngrok.list
+          apt-get update && apt-get install ngrok
+
+      - name: Start ngrok
+        run: |
+          ngrok http 5000 > /dev/null &
+          sleep 5  # รอให้ ngrok สร้าง URL
+
+      - name: Get ngrok URL
+        run: |
+          curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
